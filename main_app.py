@@ -60,6 +60,11 @@ def app():
 
     # Function to update data in the sheet
     def update_sheet(dataframe):
+
+        # Ensure dates are in consistent format
+        if 'Дата' in dataframe.columns:
+            dataframe['Дата'] = pd.to_datetime(dataframe['Дата'], errors='coerce').dt.strftime('%Y-%m-%d')
+
         # Replace NaN values with empty strings to ensure JSON compliance
         dataframe = dataframe.fillna("")
 
