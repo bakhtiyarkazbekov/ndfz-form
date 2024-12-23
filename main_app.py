@@ -61,10 +61,18 @@ def app():
     # Function to update data in the sheet
     def update_sheet(dataframe):
 
+        # Ensure 'Дата' is in datetime format for sorting
+        if 'Дата' in dataframe.columns:
+            dataframe['Дата'] = pd.to_datetime(dataframe['Дата'], format='%d.%m.%Y', errors='coerce')
+
         # Sort by 'Дата' and 'Время начала'
         if 'Время начала' in dataframe.columns:
             dataframe = dataframe.sort_values(by=['Дата', 'Время начала'], ascending=[True, True])
-            
+
+        # Convert 'Дата' back to string format for Google Sheets
+        if 'Дата' in dataframe.columns:
+            dataframe['Дата'] = dataframe['Дата'].dt.strftime('%d.%m.%Y')
+
         # Replace NaN values with empty strings to ensure JSON compliance
         dataframe = dataframe.fillna("")
 
