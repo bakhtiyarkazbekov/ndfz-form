@@ -21,7 +21,7 @@ def app():
     # Authenticate and connect to Google Sheets
     try:
         credentials = Credentials.from_service_account_file(
-            st.secrets["google_credentials_path"], scopes=SCOPES
+            st.secrets["GOOGLE_CREDENTIALS"], scopes=SCOPES
         )
         client = gspread.authorize(credentials)
     except Exception as e:
