@@ -63,8 +63,11 @@ def app():
 
         # Ensure dates are in consistent format
         if 'Дата' in dataframe.columns:
-            dataframe['Дата'] = pd.to_datetime(dataframe['Дата'], errors='coerce').dt.strftime('%Y-%m-%d')
-        
+            dataframe['Дата'] = pd.to_datetime(
+                dataframe['Дата'], format='%d.%m.%Y', errors='coerce', dayfirst=True
+            ).dt.strftime('%Y-%m-%d')   
+            
+                 
         # Sort by 'Дата' and 'Время начала'
         if 'Время начала' in dataframe.columns:
             dataframe = dataframe.sort_values(by=['Дата', 'Время начала'], ascending=[True, True])
