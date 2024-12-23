@@ -10,8 +10,6 @@ def app():
     st.title("Форма для НДФЗ")
     st.markdown("Введите данные о случаях ограничения потребления.")
 
-    st.secrets["google_credentials_path"]
-
     # Define the scope
     SCOPES = [
         'https://www.googleapis.com/auth/spreadsheets',
