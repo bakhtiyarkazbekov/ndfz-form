@@ -40,17 +40,22 @@ def app():
     # Function to fetch data from the sheet
     def fetch_data():
         try:
+            # Fetch data from your source (e.g., Google Sheets or database)
             data = worksheet.get_all_values()
-            if not data:
-                return pd.DataFrame(columns=["ID", "Дата", "Время начала", "Время конца", "Тип", "Объем, МВт"])
-            df = pd.DataFrame(data[1:], columns=data[0])  # First row as headers
-            if 'ID' in df.columns:
-                df['ID'] = pd.to_numeric(df['ID'], errors='coerce')  # Convert ID to numeric
+            
+            # Use only the first 6 columns
+            data = [row[:6] for row in data]
+            
+            # Create DataFrame with the first row as headers
+            if data:
+                df = pd.DataFrame(data[1:], columns=data[0])
+            else:
+                df = pd.DataFrame(columns=["ID", "Дата", "Время начала", "Время конца", "Тип", "Объем, МВт"])
+            
             return df
         except Exception as e:
-            st.error(f"Ошибка чтения данных из Google Sheet: {e}")
+            st.error(f"Ошибка чтения данных: {e}")
             return pd.DataFrame(columns=["ID", "Дата", "Время начала", "Время конца", "Тип", "Объем, МВт"])
-
 
     # Function to update data in the sheet
     def update_sheet(dataframe):
