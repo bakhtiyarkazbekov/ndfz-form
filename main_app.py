@@ -57,11 +57,16 @@ def app():
             st.error(f"Ошибка чтения данных: {e}")
             return pd.DataFrame(columns=["ID", "Дата", "Время начала", "Время конца", "Тип", "Объем, МВт"])
 
+
     # Function to update data in the sheet
     def update_sheet(dataframe):
+        # Replace NaN values with empty strings to ensure JSON compliance
+        dataframe = dataframe.fillna("")
+
         worksheet.clear()
         worksheet.append_row(dataframe.columns.tolist())  # Add headers
         worksheet.append_rows(dataframe.values.tolist())  # Add rows
+
 
     # Fetch initial data
     existing_data = fetch_data()
@@ -106,7 +111,10 @@ def app():
                 ]
                 # Append new data to the DataFrame
                 new_df = pd.DataFrame([new_row], columns=existing_data.columns)
+                new_df = new_df.fillna("")  # Replace NaN values with empty strings
                 existing_data = pd.concat([existing_data, new_df], ignore_index=True)
+                existing_data = existing_data.fillna("")  # Ensure no NaN values before updating
+                
                 # Update the Google Sheet
                 update_sheet(existing_data)
                 existing_data = fetch_data()
