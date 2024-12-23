@@ -20,7 +20,8 @@ def app():
 
     # Load credentials from Streamlit secrets
     try:
-        service_account_info = json.loads(st.secrets["GOOGLE_CREDENTIALS_PATH"])
+        # Use the AttrDict directly without parsing
+        service_account_info = st.secrets["GOOGLE_CREDENTIALS_PATH"]
         credentials = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
         client = gspread.authorize(credentials)
     except Exception as e:
