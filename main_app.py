@@ -61,26 +61,10 @@ def app():
     # Function to update data in the sheet
     def update_sheet(dataframe):
 
-        # Ensure dates are in consistent format
-        if 'Дата' in dataframe.columns:
-            # Attempt to parse dates while preserving existing valid ones
-            dataframe['Дата'] = dataframe['Дата'].apply(
-                lambda x: pd.to_datetime(x, format='%d.%m.%Y', errors='coerce', dayfirst=True)
-                if pd.notnull(x) else x
-            )
-            
-            # Replace NaT with the original value to preserve previous invalid entries
-            dataframe['Дата'] = dataframe['Дата'].fillna(dataframe['Дата'].astype(str))
-
-            # Format dates to the desired output format
-            dataframe['Дата'] = dataframe['Дата'].apply(
-                lambda x: x.strftime('%Y-%m-%d') if isinstance(x, pd.Timestamp) else x
-            )
-
         # Sort by 'Дата' and 'Время начала'
         if 'Время начала' in dataframe.columns:
             dataframe = dataframe.sort_values(by=['Дата', 'Время начала'], ascending=[True, True])
-
+            
         # Replace NaN values with empty strings to ensure JSON compliance
         dataframe = dataframe.fillna("")
 
