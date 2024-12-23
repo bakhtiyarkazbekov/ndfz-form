@@ -10,6 +10,9 @@ def app():
     st.title("Форма для НДФЗ")
     st.markdown("Введите данные о случаях ограничения потребления.")
 
+    credentials_path = st.secrets["GOOGLE_CREDENTIALS_PATH"]
+
+
     # Define the scope
     SCOPES = [
         'https://www.googleapis.com/auth/spreadsheets',
@@ -19,7 +22,7 @@ def app():
     # Authenticate and connect to Google Sheets
     try:
         credentials = Credentials.from_service_account_file(
-            st.secrets["GOOGLE_CREDENTIALS"], scopes=SCOPES
+            credentials_path, scopes=SCOPES
         )
         client = gspread.authorize(credentials)
     except Exception as e:
