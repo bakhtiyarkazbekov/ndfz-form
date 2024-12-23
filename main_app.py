@@ -90,7 +90,12 @@ def app():
                 st.warning("Все обязательные поля должны быть заполнены.")
             else:
                 # Auto-generate ID for the new record
-                new_id = existing_data['ID'].max() + 1 if not existing_data.empty else 1
+                if not existing_data.empty:
+                    existing_data['ID'] = pd.to_numeric(existing_data['ID'], errors='coerce')  # Ensure IDs are numeric
+                    new_id = existing_data['ID'].max() + 1
+                else:
+                    new_id = 1
+
                 new_row = [
                     new_id,
                     date.strftime("%d.%m.%Y"),
