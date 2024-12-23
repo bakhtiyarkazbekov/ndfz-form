@@ -4,14 +4,13 @@ from google.oauth2.service_account import Credentials
 import pandas as pd
 import streamlit_authenticator as stauth
 import pickle
+import json
+
 
 def app():
     # Display Title and Description
     st.title("Форма для НДФЗ")
     st.markdown("Введите данные о случаях ограничения потребления.")
-
-    credentials_path = st.secrets["GOOGLE_CREDENTIALS_PATH"]
-
 
     # Define the scope
     SCOPES = [
@@ -19,11 +18,10 @@ def app():
         'https://www.googleapis.com/auth/drive'
     ]
 
-    # Authenticate and connect to Google Sheets
+    # Load credentials from Streamlit secrets
     try:
-        credentials = Credentials.from_service_account_file(
-            credentials_path, scopes=SCOPES
-        )
+        service_account_info = json.loads(st.secrets["GOOGLE_CREDENTIALS_PATH"])
+        credentials = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
         client = gspread.authorize(credentials)
     except Exception as e:
         st.error(f"Ошибка авторизации: {e}")
