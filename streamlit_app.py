@@ -93,7 +93,7 @@ if authentication_status:
         app()
 
     if app_menu == "Аналитика":
-        st.title("Аналитика для НДФЗ")
+        st.title("Аналитика")
 
         # Define the scope
         SCOPES = [
