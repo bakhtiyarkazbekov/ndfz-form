@@ -184,6 +184,7 @@ if authentication_status:
 
 
         # Get the latest month in the data
+        combined_df['day'] = pd.to_datetime(combined_df['day'], errors='coerce')
         latest_month = combined_df['day'].max().month
         latest_year = combined_df['day'].max().year
 
