@@ -183,16 +183,28 @@ if authentication_status:
         combined_df[columns_to_convert] = combined_df[columns_to_convert].apply(pd.to_numeric, errors='coerce')
 
 
+        # Get the latest month in the data
+        latest_month = combined_df['day'].max().month
+        latest_year = combined_df['day'].max().year
+
+        # Filter for the latest month
+        latest_month_data = combined_df[(combined_df['day'].dt.month == latest_month) & 
+                                        (combined_df['day'].dt.year == latest_year)]
+
+        # Get the first and last date of the latest month
+        default_start = latest_month_data['day'].min()
+        default_end = latest_month_data['day'].max()
+
         # User input for filters
         # Create two columns for start and end date inputs
         col1, col2 = st.columns(2)
 
         # User input for filters in separate columns
         with col1:
-            start_day = st.date_input("Выберите начальную дату", value=combined_df['day'].min())
+            start_day = st.date_input("Выберите начальную дату", value=default_start)
 
         with col2:
-            end_day = st.date_input("Выберите конечную дату", value=combined_df['day'].max())
+            end_day = st.date_input("Выберите конечную дату", value=default_end)
 
 
         # Filter the data based on the selected dates
