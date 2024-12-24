@@ -202,12 +202,15 @@ if authentication_status:
 
         # User input for filters in separate columns
         with col1:
-            start_day = st.date_input("Выберите начальную дату", value=default_start)
+            start_day = st.date_input("Выберите начальную дату", value=default_start.date())
 
         with col2:
-            end_day = st.date_input("Выберите конечную дату", value=default_end)
+            end_day = st.date_input("Выберите конечную дату", value=default_end.date())
 
-
+        # Convert 'start_day' and 'end_day' back to datetime for comparison
+        start_day = pd.to_datetime(start_day)
+        end_day = pd.to_datetime(end_day)
+        
         # Filter the data based on the selected dates
         filtered_data = combined_df[(combined_df['day'] >= start_day) & (combined_df['day'] <= end_day)]
 
