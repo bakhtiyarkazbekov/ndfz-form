@@ -210,7 +210,7 @@ if authentication_status:
         # Convert 'start_day' and 'end_day' back to datetime for comparison
         start_day = pd.to_datetime(start_day)
         end_day = pd.to_datetime(end_day)
-        
+
         # Filter the data based on the selected dates
         filtered_data = combined_df[(combined_df['day'] >= start_day) & (combined_df['day'] <= end_day)]
 
@@ -355,7 +355,7 @@ if authentication_status:
 
 
             # Filter relevant columns for the chart
-            activation_data = combined_df[['day', 'Время начала', 'Время конца', 'Тип', 'Объем, МВт']].dropna()
+            activation_data = filtered_data[['day', 'Время начала', 'Время конца', 'Тип', 'Объем, МВт']].dropna()
      
             # Define custom colors based on 'Тип'
             color_map = {
