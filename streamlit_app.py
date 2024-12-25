@@ -391,7 +391,7 @@ if authentication_status:
 
             # Filter relevant columns for the chart
             activation_data = filtered_data[['day', 'Время начала', 'Время конца', 'Тип', 'Объем, МВт']].dropna()
-     
+        
             # Define custom colors based on 'Тип'
             color_map = {
                 'САОН': 'blue',  # Replace 'Тип 1' with actual type values from your data
@@ -457,14 +457,14 @@ if authentication_status:
 
             # Cache forecast for Generation and Consumption
             @st.cache_data
-            def compute_generation_forecast(df, steps=4):
+            def compute_generation_forecast(df, steps=5):
                 model_gen = ARIMA(df['fact_Южный Казахстан_Генерация(МВт)'], order=(2, 1, 2))
                 model_fit_gen = model_gen.fit()
                 forecast_gen = model_fit_gen.forecast(steps=steps)
                 return [round(value) for value in forecast_gen]
 
             @st.cache_data
-            def compute_consumption_forecast(df, steps=4):
+            def compute_consumption_forecast(df, steps=5):
                 model_cons = ARIMA(df['fact_Южный Казахстан_Потребление(МВт)'], order=(2, 1, 2))
                 model_fit_cons = model_cons.fit()
                 forecast_cons = model_fit_cons.forecast(steps=steps)
@@ -472,7 +472,7 @@ if authentication_status:
 
             # Cache forecast for Жамбылская ГРЭС
             @st.cache_data
-            def compute_grs_forecasts(df, steps=4):
+            def compute_grs_forecasts(df, steps=5):
                 model_fact = ARIMA(df['fact_АО "Жамбылская ГРЭС"_Нагрузка'], order=(2, 1, 2))
                 model_fit_fact = model_fact.fit()
                 forecast_fact = model_fit_fact.forecast(steps=steps)
@@ -497,7 +497,7 @@ if authentication_status:
                 ['day', 'fact_Южный Казахстан_Генерация(МВт)', 'fact_Южный Казахстан_Потребление(МВт)']
             ].dropna().drop_duplicates(subset=['day'])
 
-            forecast_days = pd.date_range(start=df_pred_1['day'].max() + pd.Timedelta(days=1), periods=4)
+            forecast_days = pd.date_range(start=df_pred_1['day'].max() + pd.Timedelta(days=1), periods=5)
 
             # Get cached forecasts
             forecast_1 = compute_generation_forecast(df_pred_1)
@@ -505,7 +505,7 @@ if authentication_status:
 
             forecast_data = pd.DataFrame({
                 'day': list(forecast_days) * 2,  # Duplicate forecast_days to match the length of Показатель and МВт
-                'Показатель': ['Генерация Юж. Казахстан (МВт)'] * 4 + ['Потребление Юж. Казахстан (МВт)'] * 4,
+                'Показатель': ['Генерация Юж. Казахстан (МВт)'] * 5 + ['Потребление Юж. Казахстан (МВт)'] * 5,
                 'МВт': list(forecast_1) + list(forecast_2)
             })
 
@@ -562,11 +562,11 @@ if authentication_status:
             forecast_fact, forecast_plan = compute_grs_forecasts(df_pred_2)
 
             # Prepare forecast data for visualization
-            forecast_days_2 = pd.date_range(start=df_pred_2['day'].max() + pd.Timedelta(days=1), periods=4)
+            forecast_days_2 = pd.date_range(start=df_pred_2['day'].max() + pd.Timedelta(days=1), periods=5)
 
             forecast_data_2 = pd.DataFrame({
                 'day': list(forecast_days_2) * 2,
-                'Показатель': ['Факт Жамбылская ГРЭС (МВт)'] * 4 + ['План Жамбылская ГРЭС (МВт)'] * 4,
+                'Показатель': ['Факт Жамбылская ГРЭС (МВт)'] * 5 + ['План Жамбылская ГРЭС (МВт)'] * 5,
                 'МВт': forecast_fact + forecast_plan
             })
 
