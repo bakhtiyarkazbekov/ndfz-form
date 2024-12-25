@@ -9,8 +9,7 @@ import json
 
 def app():
     # Display Title and Description
-    st.title("Форма для НДФЗ")
-    st.markdown("Введите данные о случаях ограничения потребления.")
+    # st.title("Форма для НДФЗ")
 
     # Define the scope
     SCOPES = [
@@ -88,17 +87,28 @@ def app():
     if 'ID' not in existing_data.columns:
         existing_data.insert(0, 'ID', range(1, len(existing_data) + 1))
 
+    st.subheader("Форма")
+
     # Form for data input
     with st.form(key="restriction_form"):
         st.markdown("### Добавить новую запись")
         date = st.date_input(label="Дата*")
-        start_time = st.text_input(label="Время начала (ЧЧ:ММ)*", placeholder="12:04")
-        end_time = st.text_input(label="Время конца (ЧЧ:ММ)*", placeholder="12:15")
-        restriction_type = st.selectbox(
-            "Тип*", 
-            options=["САОН", "Команда СО"],  # Add other restriction types as needed
-        )
-        volume = st.number_input("Объем, МВт*", min_value=0.0, step=0.01)
+        # Create two columns for start and end time
+        col1, col2 = st.columns(2)
+        with col1:
+            start_time = st.text_input(label="Время начала (ЧЧ:ММ)*", placeholder="12:04")
+        with col2:
+            end_time = st.text_input(label="Время конца (ЧЧ:ММ)*", placeholder="12:15")
+
+        # Create two columns for restriction type and volume
+        col3, col4 = st.columns(2)
+        with col3:
+            restriction_type = st.selectbox(
+                "Тип*", 
+                options=["САОН", "Команда СО"],  # Add other restriction types as needed
+            )
+        with col4:
+            volume = st.number_input("Объем, МВт*", min_value=0.0, step=0.01)
 
         submit_button = st.form_submit_button(label="Добавить запись")
 
@@ -134,40 +144,50 @@ def app():
                 st.success("Запись успешно добавлена!")
 
     # Display the existing data with a refresh button
-    st.markdown("### Существующие записи")
+    st.subheader("Существующие записи")
     st.dataframe(existing_data)
 
 
     # Edit/Delete Section
     st.markdown("### Изменить или удалить запись")
-    selected_id = st.number_input("Введите ID записи для изменения или удаления:", min_value=1, step=1)
+    selected_id = st.selectbox("Выберите ID записи для изменения или удаления:", existing_data['ID'].tolist())
 
     # Check if the ID exists
-    if selected_id in existing_data['ID'].values:
+    if selected_id:  # Check if an ID is selected
+
         record = existing_data[existing_data['ID'] == selected_id]
-        st.write("Выбранная запись:")
-        st.write(record)
+        # st.write("Выбранная запись:")
+        # st.write(record)
 
         # Edit or delete options
-        action = st.radio("Действие:", ["Изменить", "Удалить"])
+        action = st.radio("Действие:", ["Изменить", "Удалить"], horizontal=True)
 
         if action == "Изменить":
             with st.form(key="edit_form"):
                 st.markdown("### Изменить запись")
                 edit_date = st.date_input("Дата*", value=pd.to_datetime(record['Дата'].values[0], format="%d.%m.%Y"))
-                edit_start_time = st.text_input("Время начала (ЧЧ:ММ)*", value=record['Время начала'].values[0])
-                edit_end_time = st.text_input("Время конца (ЧЧ:ММ)*", value=record['Время конца'].values[0])
-                edit_restriction_type = st.selectbox(
-                    "Тип*", 
-                    options=["САОН", "Команда СО"],
-                    index=["САОН", "Команда СО"].index(record['Тип'].values[0]),
-                )
-                edit_volume = st.number_input(
-                    "Объем, МВт*", 
-                    value=float(record['Объем, МВт'].values[0]), 
-                    min_value=0.0, 
-                    step=0.01
-                )
+                # Create two columns for time inputs
+                col1, col2 = st.columns(2)
+                with col1:
+                    edit_start_time = st.text_input("Время начала (ЧЧ:ММ)*", value=record['Время начала'].values[0])
+                with col2:
+                    edit_end_time = st.text_input("Время конца (ЧЧ:ММ)*", value=record['Время конца'].values[0])
+
+                # Create two columns for restriction type and volume
+                col3, col4 = st.columns(2)
+                with col3:
+                    edit_restriction_type = st.selectbox(
+                        "Тип*", 
+                        options=["САОН", "Команда СО"],
+                        index=["САОН", "Команда СО"].index(record['Тип'].values[0]),
+                    )
+                with col4:
+                    edit_volume = st.number_input(
+                        "Объем, МВт*", 
+                        value=float(record['Объем, МВт'].values[0]), 
+                        min_value=0.0, 
+                        step=0.01
+                    )
                 update_button = st.form_submit_button("Обновить запись")
 
                 if update_button:

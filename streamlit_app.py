@@ -11,12 +11,32 @@ from google.oauth2.service_account import Credentials
 import gspread
 import matplotlib.pyplot as plt
 import plotly.express as px
+from datetime import datetime, timedelta
+from statsmodels.tsa.arima.model import ARIMA
 
+# st.set_page_config(layout="wide")
 
 hide_streamlit_style = """
             <style>
             MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
+
+
+            /* Reduce spacing between Streamlit elements */
+            .element-container {
+                margin-bottom: 0rem; /* Decrease space between elements */
+            }
+
+
+            /* Adjust the main container to use up to 90% of the screen width */
+            .block-container {
+                max-width: 90%; /* Use 90% of the screen width */
+                padding-top: 0rem; /* Reduce the top padding to decrease space */
+                padding-left: 2rem; /* Add left padding */
+                padding-right: 2rem; /* Add right padding */
+                margin-left: auto; /* Center the main content */
+                margin-right: auto; /* Center the main content */
+            }
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
@@ -93,7 +113,7 @@ if authentication_status:
         app()
 
     if app_menu == "Аналитика":
-        st.title("Аналитика")
+        st.subheader("Аналитика")
 
         # Define the scope
         SCOPES = [
@@ -185,27 +205,19 @@ if authentication_status:
 
         # Get the latest month in the data
         combined_df['day'] = pd.to_datetime(combined_df['day'], errors='coerce')
-        latest_month = combined_df['day'].max().month
-        latest_year = combined_df['day'].max().year
 
-        # Filter for the latest month
-        latest_month_data = combined_df[(combined_df['day'].dt.month == latest_month) & 
-                                        (combined_df['day'].dt.year == latest_year)]
-
-        # Get the first and last date of the latest month
-        default_start = latest_month_data['day'].min()
-        default_end = latest_month_data['day'].max()
-
-        # User input for filters
-        # Create two columns for start and end date inputs
-        col1, col2 = st.columns(2)
+        # Set default start and end dates
+        end_day_default = datetime.today().date()  # Today's date
+        start_day_default = (datetime.today() - timedelta(days=7)).date()  # 10 days before today
 
         # User input for filters in separate columns
+        col1, col2 = st.columns(2)
+
         with col1:
-            start_day = st.date_input("Выберите начальную дату", value=default_start.date())
+            start_day = st.date_input("Выберите начальную дату", value=start_day_default)
 
         with col2:
-            end_day = st.date_input("Выберите конечную дату", value=default_end.date())
+            end_day = st.date_input("Выберите конечную дату", value=end_day_default)
 
         # Convert 'start_day' and 'end_day' back to datetime for comparison
         start_day = pd.to_datetime(start_day)
@@ -246,20 +258,31 @@ if authentication_status:
                 x='day',
                 y='МВт',
                 color='Показатель',
-                title='Генерация и Потребление по Южному Казахстану, МВт',
+                title='Юж. Казахстан, МВт',
                 labels={'day': 'День', 'МВт': 'МВт'},
                 barmode='group',
-                height=600,
-                color_discrete_map=color_map  # Apply custom colors
+                height=270,
+                color_discrete_map=color_map,  # Apply custom colors
+                text_auto=True  # Automatically display data labels
             )
 
             fig1.update_traces(hovertemplate='<b>День:</b> %{x}<br><b>МВт:</b> %{y}<br>')
 
+            # Adjust text position and color inside columns
+            fig1.update_traces(
+                textposition='inside',  # Position labels inside bars
+                textfont=dict(size=10, color='white')  # Set text color to white
+            )
+
             fig1.update_layout(
-                xaxis=dict(tickangle=45),
-                font=dict(size=12),
-                legend_title='Показатель',
-                title_font_size=16,
+                xaxis=dict(
+                    tickformat='%d %b',  # Show day and month only (e.g., "03 Dec")
+                ),
+                margin=dict(l=5, r=5, t=5, b=1),  # Compact margins
+                height=180,  # Reduced height
+                font=dict(size=9),  # Smaller font for compactness
+                legend_title='',
+                title_font_size=14,
                 legend=dict(
                     orientation="h",
                     y=1.0,
@@ -268,9 +291,6 @@ if authentication_status:
                     yanchor="bottom"
                 ),
             )
-
-            # Display the first chart
-            st.plotly_chart(fig1, use_container_width=True)
 
 
             # Second Chart: Нагрузка по Жамбылской ГРЭС
@@ -295,19 +315,30 @@ if authentication_status:
                 x='day',
                 y='МВт',
                 color='Показатель',
-                title='Нагрузка Жамбылской ГРЭС, МВт',
+                title='Нагрузка ЖГРЭС, МВт',
                 labels={'day': 'День', 'МВт': 'МВт'},
                 barmode='group',
-                height=600,
+                height=270,
+                text_auto=True  # Automatically display data labels
             )
 
             fig2.update_traces(hovertemplate='<b>День:</b> %{x}<br><b>МВт:</b> %{y}<br>')
 
+            # Adjust text position and color inside columns
+            fig2.update_traces(
+                textposition='inside',  # Position labels inside bars
+                textfont=dict(size=10, color='white')  # Set text color to white
+            )
+
             fig2.update_layout(
-                xaxis=dict(tickangle=45),
-                font=dict(size=12),
-                legend_title='Показатель',
-                title_font_size=16,
+                xaxis=dict(
+                    tickformat='%d %b',  # Show day and month only (e.g., "03 Dec")
+                ),
+                margin=dict(l=5, r=5, t=5, b=1),
+                height=180,
+                font=dict(size=9),
+                legend_title='',
+                title_font_size=14,
                 legend=dict(
                     orientation="h",
                     y=1.0,
@@ -316,9 +347,6 @@ if authentication_status:
                     yanchor="bottom"
                 ),
             )
-
-            # Display the second chart
-            st.plotly_chart(fig2, use_container_width=True)
 
             # Filter relevant columns for the weather data
             weather_data = filtered_data[['day', 'Кызылорда', 'Тараз', 'Шымкент', 'Туркестан']].dropna()
@@ -331,9 +359,9 @@ if authentication_status:
                 weather_data,
                 x='day',
                 y='Средняя температура',
-                title='Средняя температура Юж. Казахстана, (°C)',
-                labels={'day': 'День', 'Средняя температура': 'Температура (°C)'},
-                height=600
+                title='Температура Юж. Казахстана, (°C)',
+                labels={'day': 'День', 'Средняя температура': 'Т (°C)'},
+                height=100
             )
 
             # Add data labels to the chart
@@ -345,14 +373,21 @@ if authentication_status:
 
             # Customize the layout for better appearance
             fig3.update_layout(
-                xaxis=dict(tickangle=45),  # Rotate x-axis labels for better readability
-                font=dict(size=12),
-                title_font_size=16,
+                xaxis=dict(
+                    tickformat='%d %b',  # Show day and month only (e.g., "03 Dec")
+                ),
+                yaxis=dict(
+                    automargin=True,  # Ensure enough space for Y-axis
+                    range=[
+                        weather_data['Средняя температура'].min() - 2,  # Add padding to minimum value
+                        weather_data['Средняя температура'].max() + 2   # Add padding to maximum value
+                    ]
+                ),
+                margin=dict(l=5, r=5, t=20, b=10),
+                height=160,
+                font=dict(size=9),
+                title_font_size=14,
             )
-
-            # Display the chart in Streamlit
-            st.plotly_chart(fig3, use_container_width=True)
-
 
             # Filter relevant columns for the chart
             activation_data = filtered_data[['day', 'Время начала', 'Время конца', 'Тип', 'Объем, МВт']].dropna()
@@ -377,9 +412,8 @@ if authentication_status:
                 y='Объем, МВт',
                 color='Тип',
                 title='История ограничений НДФЗ',
-                labels={'day': 'Дата', 'Объем, МВт': 'Объем (МВт)'},
+                labels={'day': 'День', 'Объем, МВт': 'МВт'},
                 color_discrete_map=color_map,  # Apply custom colors
-                height=600
             )
 
             # Customize hover data
@@ -406,17 +440,259 @@ if authentication_status:
 
             # Customize x-axis to show only activation dates
             fig.update_layout(
+
+                margin=dict(l=5, r=5, t=50, b=5),
+                height=140,
+                font=dict(size=9),
+                title_font_size=14,
                 xaxis=dict(
-                    tickangle=45,  # Rotate x-axis labels for readability
-                    tickvals=activation_data['day'].unique(),  # Set x-axis ticks to unique activation dates
-                    ticktext=activation_data['day'].unique().astype(str)  # Convert dates to strings for display
+                    # tickangle=45,  # Rotate x-axis labels for readability
+                    tickvals=activation_data['day'].unique(),
+                    ticktext=activation_data['day'].unique().astype(str),
+                    tickformat='%d %b',  # Show day and month only (e.g., "03 Dec")
                 ),
-                font=dict(size=12),
-                title_font_size=16,
             )
 
-            # Display the chart in Streamlit
+            #################################
+
+            # Cache forecast for Generation and Consumption
+            @st.cache_data
+            def compute_generation_forecast(df, steps=4):
+                model_gen = ARIMA(df['fact_Южный Казахстан_Генерация(МВт)'], order=(2, 1, 2))
+                model_fit_gen = model_gen.fit()
+                forecast_gen = model_fit_gen.forecast(steps=steps)
+                return [round(value) for value in forecast_gen]
+
+            @st.cache_data
+            def compute_consumption_forecast(df, steps=4):
+                model_cons = ARIMA(df['fact_Южный Казахстан_Потребление(МВт)'], order=(2, 1, 2))
+                model_fit_cons = model_cons.fit()
+                forecast_cons = model_fit_cons.forecast(steps=steps)
+                return [round(value) for value in forecast_cons]
+
+            # Cache forecast for Жамбылская ГРЭС
+            @st.cache_data
+            def compute_grs_forecasts(df, steps=4):
+                model_fact = ARIMA(df['fact_АО "Жамбылская ГРЭС"_Нагрузка'], order=(2, 1, 2))
+                model_fit_fact = model_fact.fit()
+                forecast_fact = model_fit_fact.forecast(steps=steps)
+
+                model_plan = ARIMA(df['plan_АО "Жамбылская ГРЭС"_Нагрузка'], order=(2, 1, 2))
+                model_fit_plan = model_plan.fit()
+                forecast_plan = model_fit_plan.forecast(steps=steps)
+
+                return [round(value) for value in forecast_fact], [round(value) for value in forecast_plan]
+
+            # Cache weather forecast
+            @st.cache_data
+            def compute_average_temperature_forecast(df, forecast_days):
+                weather_forecast_data = df[df['day'].isin(forecast_days)][['day', 'Кызылорда', 'Тараз', 'Шымкент', 'Туркестан']]
+                weather_forecast_data['Средняя температура'] = weather_forecast_data[['Кызылорда', 'Тараз', 'Шымкент', 'Туркестан']].mean(axis=1)
+                return weather_forecast_data
+
+
+
+            # Filter the input data
+            df_pred_1 = combined_df[combined_df['day'] >= pd.Timestamp('2024-07-01')][
+                ['day', 'fact_Южный Казахстан_Генерация(МВт)', 'fact_Южный Казахстан_Потребление(МВт)']
+            ].dropna().drop_duplicates(subset=['day'])
+
+            forecast_days = pd.date_range(start=df_pred_1['day'].max() + pd.Timedelta(days=1), periods=4)
+
+            # Get cached forecasts
+            forecast_1 = compute_generation_forecast(df_pred_1)
+            forecast_2 = compute_consumption_forecast(df_pred_1)
+
+            forecast_data = pd.DataFrame({
+                'day': list(forecast_days) * 2,  # Duplicate forecast_days to match the length of Показатель and МВт
+                'Показатель': ['Генерация Юж. Казахстан (МВт)'] * 4 + ['Потребление Юж. Казахстан (МВт)'] * 4,
+                'МВт': list(forecast_1) + list(forecast_2)
+            })
+
+            # Define custom colors for the categories in the legend
+            color_map = {
+                'Генерация Юж. Казахстан (МВт)': '#1f77b4',  # Blue
+                'Потребление Юж. Казахстан (МВт)': '#ff7f0e'  # Orange
+            }
+            # Create the second chart (Forecasts)
+            fig1b = px.bar(
+                forecast_data,
+                x='day',
+                y='МВт',
+                color='Показатель',
+                title='Прогноз, МВт',
+                labels={'day': 'День', 'МВт': 'МВт'},
+                barmode='group',
+                height=270,
+                color_discrete_map=color_map,  # Apply custom colors
+                text_auto=True  # Automatically display data labels
+            )
+
+            fig1b.update_traces(hovertemplate='<b>День:</b> %{x}<br><b>МВт:</b> %{y}<br>')
+
+            # Adjust text position and color inside columns
+            fig1b.update_traces(
+                textposition='inside',  # Position labels inside bars
+                textfont=dict(size=10, color='white')  # Set text color to white
+            )
+
+            fig1b.update_layout(
+                xaxis=dict(
+                    tickformat='%d %b',  # Show day and month only (e.g., "03 Dec")
+                ),
+                margin=dict(l=5, r=5, t=5, b=1),  # Compact margins
+                height=180,  # Reduced height
+                font=dict(size=9),  # Smaller font for compactness
+                legend_title='',
+                title_font_size=14,
+                legend=dict(
+                    orientation="h",
+                    y=1.0,
+                    x=0.5,
+                    xanchor="center",
+                    yanchor="bottom"
+                ),
+            )
+
+            # Prepare data for Жамбылская ГРЭС
+            df_pred_2 = combined_df[combined_df['day'] >= pd.Timestamp('2024-07-01')][
+                ['day', 'fact_АО "Жамбылская ГРЭС"_Нагрузка', 'plan_АО "Жамбылская ГРЭС"_Нагрузка']
+            ].dropna().drop_duplicates(subset=['day'])
+
+            forecast_fact, forecast_plan = compute_grs_forecasts(df_pred_2)
+
+            # Prepare forecast data for visualization
+            forecast_days_2 = pd.date_range(start=df_pred_2['day'].max() + pd.Timedelta(days=1), periods=4)
+
+            forecast_data_2 = pd.DataFrame({
+                'day': list(forecast_days_2) * 2,
+                'Показатель': ['Факт Жамбылская ГРЭС (МВт)'] * 4 + ['План Жамбылская ГРЭС (МВт)'] * 4,
+                'МВт': forecast_fact + forecast_plan
+            })
+
+            # Create the second chart for Жамбылская ГРЭС forecasts
+            fig2b = px.bar(
+                forecast_data_2,
+                x='day',
+                y='МВт',
+                color='Показатель',
+                title='Прогноз ЖГРЭС, МВт',
+                labels={'day': 'День', 'МВт': 'МВт'},
+                barmode='group',
+                height=270,
+                text_auto=True
+            )
+
+            fig2b.update_traces(hovertemplate='<b>День:</b> %{x}<br><b>МВт:</b> %{y}<br>')
+
+            fig2b.update_traces(
+                textposition='inside',
+                textfont=dict(size=10, color='white')
+            )
+
+            fig2b.update_layout(
+                xaxis=dict(
+                    tickformat='%d %b'
+                ),
+                margin=dict(l=5, r=5, t=5, b=1),
+                height=180,
+                font=dict(size=9),
+                legend_title='',
+                title_font_size=14,
+                legend=dict(
+                    orientation="h",
+                    y=1.0,
+                    x=0.5,
+                    xanchor="center",
+                    yanchor="bottom"
+                )
+            )
+
+
+            # Filter combined_df for weather predictions in the forecast range
+            weather_forecast_data = combined_df[
+                combined_df['day'].isin(forecast_days)
+            ][['day', 'Кызылорда', 'Тараз', 'Шымкент', 'Туркестан']]
+
+            # Calculate the average temperature for each day
+            weather_forecast_data['Средняя температура'] = weather_forecast_data[['Кызылорда', 'Тараз', 'Шымкент', 'Туркестан']].mean(axis=1)
+
+            # Create a line chart for average temperature predictions
+            fig3b = px.line(
+                weather_forecast_data,
+                x='day',
+                y='Средняя температура',
+                title='Температура, °C',
+                labels={'day': 'День', 'Средняя температура': 'Т (°C)'},
+                markers=True,  # Add markers for points
+                height=270
+            )
+
+            # Customize hover information
+            fig3b.update_traces(
+                hovertemplate='<b>День:</b> %{x}<br><b>Средняя температура:</b> %{y} °C<br>'
+            )
+
+            # Add data labels to the chart
+            fig3b.update_traces(
+                mode='lines+markers+text',  # Add lines, markers, and text labels
+                text=weather_forecast_data['Средняя температура'].round(1),  # Display rounded temperature values as text
+                textposition='top center'  # Position of the text labels
+            )
+
+            # Customize layout
+            fig3b.update_layout(
+                xaxis=dict(
+                    tickformat='%d %b'  # Show day and month only
+                ),
+                yaxis=dict(
+                            automargin=True,  # Ensure enough space for Y-axis
+                            range=[
+                                weather_forecast_data['Средняя температура'].min() - 2,  # Add padding to minimum value
+                                weather_forecast_data['Средняя температура'].max() + 2   # Add padding to maximum value
+                            ]
+                        ),
+                margin=dict(l=5, r=5, t=25, b=10),
+                height=160,  # Adjust height
+                font=dict(size=9),  # Compact font
+                title_font_size=14,
+                legend=dict(
+                    orientation="h",
+                    y=1.0,
+                    x=0.5,
+                    xanchor="center",
+                    yanchor="bottom"
+                )
+            )
+
+
+
+
+            # Display the first chart
+            col1, col2 = st.columns(2)
+            with col1:
+                st.plotly_chart(fig1, use_container_width=True)
+            with col2:
+                st.plotly_chart(fig1b, use_container_width=True)
+
+
+            # Display fig2 and fig2b in two columns
+            col1, col2 = st.columns(2)
+            with col1:
+                st.plotly_chart(fig2, use_container_width=True)  # Historical chart for Жамбылская ГРЭС
+            with col2:
+                st.plotly_chart(fig2b, use_container_width=True)  # Forecast chart for Жамбылская ГРЭС
+
+
+            # Display fig2 and fig2b in two columns
+            col1, col2 = st.columns(2)
+            with col1:
+                st.plotly_chart(fig3, use_container_width=True)  # Historical chart for Жамбылская ГРЭС
+            with col2:
+                st.plotly_chart(fig3b, use_container_width=True)  # Forecast chart for Жамбылская ГРЭС
+
             st.plotly_chart(fig, use_container_width=True)
+
 
 
 
