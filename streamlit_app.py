@@ -113,7 +113,7 @@ if authentication_status:
         app()
 
     if app_menu == "Аналитика":
-        st.subheader("Аналитика")
+        
 
         # Define the scope
         SCOPES = [
@@ -211,13 +211,34 @@ if authentication_status:
         start_day_default = (datetime.today() - timedelta(days=7)).date()  # 10 days before today
 
         # User input for filters in separate columns
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
+            st.subheader("Аналитика")
+        with col2:
             start_day = st.date_input("Выберите начальную дату", value=start_day_default)
+        with col3:
+            end_day = st.date_input("Выберите конечную дату", value=end_day_default)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(
+                "<div style='text-align: center; font-size: 16px; font-weight: bold;'>Факт данные</div>",
+                unsafe_allow_html=True
+            )
 
         with col2:
-            end_day = st.date_input("Выберите конечную дату", value=end_day_default)
+            st.markdown(
+                "<div style='text-align: center; font-size: 16px; font-weight: bold;'>Прогнозные данные</div>",
+                unsafe_allow_html=True
+            )
+
+        # Add a divider between the blocks
+        # Custom minimal space divider
+        st.markdown(
+            "<hr style='border: 1px solid #ccc; margin: 5px 0;'>",
+            unsafe_allow_html=True
+        )
 
         # Convert 'start_day' and 'end_day' back to datetime for comparison
         start_day = pd.to_datetime(start_day)
@@ -390,7 +411,7 @@ if authentication_status:
             )
 
             # Filter relevant columns for the chart
-            activation_data = filtered_data[['day', 'Время начала', 'Время конца', 'Тип', 'Объем, МВт']].dropna()
+            activation_data = filtered_data[['day', 'Время начала', 'Время конца', 'Тип', 'Объем, МВт']]
         
             # Define custom colors based on 'Тип'
             color_map = {
@@ -441,14 +462,22 @@ if authentication_status:
             # Customize x-axis to show only activation dates
             fig.update_layout(
 
-                margin=dict(l=5, r=5, t=50, b=5),
+                margin=dict(l=5, r=5, t=25, b=5),
                 height=140,
                 font=dict(size=9),
+                legend_title='',
                 title_font_size=14,
+                legend=dict(
+                    orientation="h",
+                    y=1.0,
+                    x=0.5,
+                    xanchor="center",
+                    yanchor="bottom"
+                ),
                 xaxis=dict(
                     # tickangle=45,  # Rotate x-axis labels for readability
-                    tickvals=activation_data['day'].unique(),
-                    ticktext=activation_data['day'].unique().astype(str),
+                    # tickvals=activation_data['day'].unique(),
+                    # ticktext=activation_data['day'].unique().astype(str),
                     tickformat='%d %b',  # Show day and month only (e.g., "03 Dec")
                 ),
             )
@@ -666,33 +695,21 @@ if authentication_status:
             )
 
 
-
-
-            # Display the first chart
+            # Display fig2 and fig2b in two columns
             col1, col2 = st.columns(2)
             with col1:
                 st.plotly_chart(fig1, use_container_width=True)
+                st.plotly_chart(fig2, use_container_width=True)  # Historical chart for Жамбылская ГРЭС
+                st.plotly_chart(fig3, use_container_width=True)  # Historical chart for Жамбылская ГРЭС
+                st.plotly_chart(fig, use_container_width=True) # Historical chart for Жамбылская ГРЭС
             with col2:
                 st.plotly_chart(fig1b, use_container_width=True)
-
-
-            # Display fig2 and fig2b in two columns
-            col1, col2 = st.columns(2)
-            with col1:
-                st.plotly_chart(fig2, use_container_width=True)  # Historical chart for Жамбылская ГРЭС
-            with col2:
                 st.plotly_chart(fig2b, use_container_width=True)  # Forecast chart for Жамбылская ГРЭС
-
-
-            # Display fig2 and fig2b in two columns
-            col1, col2 = st.columns(2)
-            with col1:
-                st.plotly_chart(fig3, use_container_width=True)  # Historical chart for Жамбылская ГРЭС
-            with col2:
                 st.plotly_chart(fig3b, use_container_width=True)  # Forecast chart for Жамбылская ГРЭС
 
-            st.plotly_chart(fig, use_container_width=True)
 
+
+            
 
 
 
